@@ -42,7 +42,7 @@ class Annotate extends React.Component {
       segmentationUrl: `/api/projects/${projectId}/data/${dataId}/segmentations`,
       isDataLoading: false,
       wavesurfer: null,
-      zoom: 100,
+      zoom: 0,
       referenceTranscription: null,
       isMarkedForReview: false,
       selectedSegment: null,
@@ -74,7 +74,13 @@ class Annotate extends React.Component {
       wavesurfer.stop();
     });
     wavesurfer.on("ready", () => {
-      wavesurfer.enableDragSelection({ color: "rgba(0, 102, 255, 0.3)" });
+      wavesurfer.enableDragSelection({ color: "rgba(0, 102, 255, 0.3)" });  
+      if(!wavesurfer.loaded) {
+        wavesurfer.loaded = true;
+        wavesurfer.play();
+        this.setState({
+          isPlaying: true});
+    }  
     });
     wavesurfer.on("region-in", (region) => {
       this.showSegmentTranscription(region);
@@ -117,7 +123,7 @@ class Annotate extends React.Component {
           segmentations,
           filename,
         } = response[1].data;
-        console.log("This was the reponse from the thing: ", response)
+        //console.log("This was the reponse from the thing: ", response[1].data)
         const regions = segmentations.map((segmentation) => {
           return {
             start: segmentation.start_time,
@@ -155,10 +161,40 @@ class Annotate extends React.Component {
 
   loadRegions(regions) {
     const { wavesurfer } = this.state;
-    regions.forEach((region) => {
-      wavesurfer.addRegion(region);
-    });
-  }
+    //console.log(regions);
+    if (regions.length>0){
+      regions.forEach((region) => {
+        wavesurfer.addRegion(region);
+        
+      });
+
+      this.setState({ selectedSegment : regions[0]});
+
+    }
+    else{
+      wavesurfer.addRegion({
+          start: 0.01,
+          end: 120.99,
+          data: {
+            segmentation_id: null,
+            transcription: null,
+            annotations: null,
+          }
+      });
+      this.setState({
+        isPlaying: true,
+        selectedSegment: {
+          start: 0.01,
+          end: 120.99,
+          data: {
+            segmentation_id: null,
+            transcription: null,
+            annotations: null,
+          }
+      },
+      });
+    }
+    }
 
   showSegmentTranscription(region) {
     this.segmentTranscription.textContent =
@@ -253,11 +289,12 @@ class Annotate extends React.Component {
         url: `${segmentationUrl}/${selectedSegment.data.segmentation_id}`,
       })
         .then((response) => {
+          //console.log(selectedSegment.id);
           wavesurfer.regions.list[selectedSegment.id].remove();
           this.setState({
             selectedSegment: null,
             isSegmentDeleting: false,
-          });
+          })
         })
         .catch((error) => {
           console.log(error);
@@ -266,7 +303,7 @@ class Annotate extends React.Component {
           });
         });
     } else {
-      wavesurfer.regions.list[selectedSegment.id].remove();
+      wavesurfer.regions.list[selectedSegment.data.segmentation_id].remove();
       this.setState({
         selectedSegment: null,
         isSegmentDeleting: false,
@@ -283,6 +320,8 @@ class Annotate extends React.Component {
       annotations,
       segmentation_id = null,
     } = selectedSegment.data;
+
+    console.log(annotations);
 
     this.setState({ isSegmentSaving: true });
 
@@ -483,23 +522,6 @@ class Annotate extends React.Component {
                     />
                   </div>
                 </div>
-                <div className="row justify-content-center">
-                  <div className="col-1">
-                    <FontAwesomeIcon icon={faSearchMinus} title="Zoom out" />
-                  </div>
-                  <div className="col-2">
-                    <input
-                      type="range"
-                      min="1"
-                      max="200"
-                      value={zoom}
-                      onChange={(e) => this.handleZoom(e)}
-                    />
-                  </div>
-                  <div className="col-1">
-                    <FontAwesomeIcon icon={faSearchPlus} title="Zoom in" />
-                  </div>
-                </div>
                 <div className="row justify-content-center my-4">
                   {referenceTranscription ? (
                     <div className="form-group">
@@ -516,27 +538,7 @@ class Annotate extends React.Component {
                     </div>
                   ) : null}
                 </div>
-                {selectedSegment ? (
-                  <div>
-                    <div className="row justify-content-center my-4">
-                      <div className="form-group">
-                        <label className="font-weight-bold">
-                          Segment Transcription
-                        </label>
-                        <textarea
-                          className="form-control"
-                          rows="3"
-                          cols="50"
-                          value={
-                            (selectedSegment &&
-                              selectedSegment.data.transcription) ||
-                            ""
-                          }
-                          onChange={(e) => this.handleTranscriptionChange(e)}
-                          ref={(el) => (this.transcription = el)}
-                        ></textarea>
-                      </div>
-                    </div>
+                <div>
                     <div className="row justify-content-center my-4">
                       {Object.entries(labels).map(([key, value], index) => {
                         if (!value["values"].length) {
@@ -585,6 +587,25 @@ class Annotate extends React.Component {
                       })}
                     </div>
                     <div className="row justify-content-center my-4">
+                      <div className="form-group">
+                        <label className="font-weight-bold">
+                          Annotator Feedback
+                        </label>
+                        <textarea
+                          className="form-control"
+                          rows="3"
+                          cols="50"
+                          value={
+                            (selectedSegment &&
+                              selectedSegment.data.transcription) ||
+                            ""
+                          }
+                          onChange={(e) => this.handleTranscriptionChange(e)}
+                          ref={(el) => (this.transcription = el)}
+                        ></textarea>
+                      </div>
+                    </div>
+                    <div className="row justify-content-center my-4">
                       <div className="col-2">
                         <Button
                           size="lg"
@@ -607,7 +628,6 @@ class Annotate extends React.Component {
                       </div>
                     </div>
                   </div>
-                ) : null}
                 <div className="row justify-content-center my-4">
                   <div className="form-check">
                     <input

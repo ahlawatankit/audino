@@ -535,7 +535,7 @@ def neighbours_data(project_id, data_id):
         if currdata.segmentations:
            pagetype = "Annotated"
         else:
-           pagetype = "Yet To annotate"
+            pagetype = "Yet To annotate"
 
         # if currdata.is_marked_for_review:
         #    pagetype = "Review"
@@ -563,6 +563,7 @@ def neighbours_data(project_id, data_id):
             data = (
                 db.session.query(Data)
                 .filter(Data.project_id == project_id)
+                .filter(Data.id.notin_(db.session.query(Segmentation.data_id)))
                 .distinct()
                 )
 
@@ -609,7 +610,7 @@ def neighbours_data(project_id, data_id):
 @jwt_required
 def add_segmentations(project_id, data_id, segmentation_id=None):
     identity = get_jwt_identity()
-
+    
     if not request.is_json:
         return jsonify(message="Missing JSON in request"), 400
 
