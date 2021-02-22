@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const noop = () => {};
 
-const IconButton = ({ icon, size = "lg", title = "", onClick = noop }) => {
+const IconButton = ({ icon, color="black", size = "lg", title = "", onClick = noop }) => {
   return (
     <button
       type="button"
@@ -12,7 +12,7 @@ const IconButton = ({ icon, size = "lg", title = "", onClick = noop }) => {
       onClick={onClick}
       title={title}
     >
-      <FontAwesomeIcon icon={icon} size={size} />
+      <FontAwesomeIcon icon={icon} size={size} color={color}/>
     </button>
   );
 };

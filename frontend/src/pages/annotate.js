@@ -350,7 +350,7 @@ class Annotate extends React.Component {
           console.log(error);
           this.setState({
             isSegmentSaving: false,
-            errorMessage: "Error saving segment",
+            errorMessage: "Mandatory(*) fields not filled",
             successMessage: null,
           });
         });
@@ -427,6 +427,7 @@ class Annotate extends React.Component {
       isSegmentSaving,
       errorMessage,
       successMessage,
+      dataId,
     } = this.state;
     return (
       <div>
@@ -435,6 +436,7 @@ class Annotate extends React.Component {
         </Helmet>
         <div className="container h-100">
           <div className="h-100 mt-5 text-center">
+              <h4>Annotation Id : {dataId}</h4>
             {errorMessage ? (
               <Alert
                 type="danger"
@@ -461,6 +463,7 @@ class Annotate extends React.Component {
                 <div className="col-1">
                     <IconButton
                       icon={faArrowLeft}
+                      color="#6DB65B"
                       size="2x"
                       title="Previous Annotation"
                       onClick={() => {
@@ -514,6 +517,7 @@ class Annotate extends React.Component {
                   <div className="col-1">
                     <IconButton
                       icon={faArrowRight}
+                      color="#6DB65B"
                       size="2x"
                       title="Next Annotation"
                       onClick={() => {
@@ -548,7 +552,7 @@ class Annotate extends React.Component {
                           <div className="col-3 text-left" key={index}>
                             <label htmlFor={key} className="font-weight-bold">
                               {key}
-                            </label>
+                            </label> <span style={{color: "red"}}>*</span>
 
                             <select
                               className="form-control"
@@ -613,7 +617,7 @@ class Annotate extends React.Component {
                           disabled={isSegmentDeleting}
                           isSubmitting={isSegmentDeleting}
                           onClick={(e) => this.handleSegmentDelete(e)}
-                          text="Delete"
+                          text="Clear"
                         />
                       </div>
                       <div className="col-2">
