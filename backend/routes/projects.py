@@ -545,6 +545,7 @@ def neighbours_data(project_id, data_id):
             data = (
                 db.session.query(Data)
                 .filter(Data.project_id == project_id)
+                .filter(Data.assigned_user==identity["username"])
                 .filter(Data.is_marked_for_review)
                 .distinct()
                 .order_by(Data.created_at.desc()))
@@ -555,14 +556,16 @@ def neighbours_data(project_id, data_id):
             data = (
                 db.session.query(Data)
                 .filter(Data.project_id == project_id)
+                .filter(Data.assigned_user==request_user)
                 .filter(Data.id.in_(segmentations))
                 .distinct()
-                .order_by(Data.created_at.desc()))
-
+                .order_by(Data.created_at.desc())
+            )
         elif pagetype == "Yet To annotate":
             data = (
                 db.session.query(Data)
                 .filter(Data.project_id == project_id)
+                .filter(Data.assigned_user==request_user)
                 .filter(Data.id.notin_(db.session.query(Segmentation.data_id)))
                 .distinct()
                 )
